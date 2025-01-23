@@ -1,21 +1,20 @@
 import { async } from 'regenerator-runtime/runtime';
+import { API_URL } from './config';
+import { getJSON } from './helper';
 
 export const state = {
   recipe: {},
+  search: {
+    query: '',
+    results: [],
+  },
 };
 
 export const loadRecipe = async function (id) {
   try {
-    console.log(id);
-    const res = await fetch(
-      `https://forkify-api.jonas.io/api/v2/recipes/${id}`
-    );
-    const data = await res.json();
-    console.log(res, data);
+    const data = await getJSON(`${API_URL}/${id}`);
+    // console.log(data);
 
-    if (!res.ok) {
-      throw new Error(`${data.message} (${res.status})`);
-    }
     let { recipe } = data.data;
 
     state.recipe = {
@@ -30,6 +29,28 @@ export const loadRecipe = async function (id) {
     };
     console.log(state.recipe);
   } catch (error) {
-    alert(error);
+    console.error(`${error} 🛠🛠🛠🛠🛠🛠🛠⚒⚒`);
+    throw Error(error);
+  }
+};
+
+export const loadSearchRecipe = async function (query) {
+  try {
+    state.search.query = query;
+
+    const data = await getJSON(`${API_URL}?search=${query}`);
+
+    state.search.results = data.data.recipes.map(rec => {
+      return {
+        id: rec.id,
+        title: rec.title,
+        publisher: rec.publisher,
+        image: rec.image_url,
+      };
+    });
+    // console.log(state.search.results);
+  } catch (error) {
+    console.error(`${error} this is from the loadsearchrecipe`);
+    throw error;
   }
 };

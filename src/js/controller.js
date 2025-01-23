@@ -2,18 +2,11 @@ import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import * as model from './model';
 import recipeView from './views/recipeView';
-
-const timeout = function (s) {
-  return new Promise(function (_, reject) {
-    setTimeout(function () {
-      reject(new Error(`Request took too long! Timeout after ${s} second`));
-    }, s * 1000);
-  });
-};
+import searchView from './views/searchView';
 
 ///////////////////////////////////////
 
-const showRecipe = async function () {
+const controlRecipe = async function () {
   try {
     const id = window.location.hash.slice(1);
 
@@ -23,13 +16,30 @@ const showRecipe = async function () {
     await model.loadRecipe(id);
 
     ///Rendering recipe
+    recipeView.renderSpinner();
     recipeView.render(model.state.recipe);
   } catch (err) {
-    alert(err);
+    console.error(`${err} 🥼🥼🥼🥼`);
+    recipeView.renderError();
   }
 };
 
-showRecipe();
-['hashchange', 'load'].forEach(ev => window.addEventListener(ev, showRecipe));
+const controlSearchResults = async function () {
+  try {
+    const query = searchView.getQuery();
+    if (!query) return;
+
+    await model.loadSearchRecipe(query);
+    console.log(model.state.search.results);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const init = function () {
+  recipeView.addHandlerRender(controlRecipe);
+  searchView.addHandlerSearch(controlSearchResults);
+};
+init();
 
 // window.addEventListener('hashchange', showRecipe);
